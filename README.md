@@ -88,6 +88,7 @@ How to Run:
 
 python3 asset_generator.py
 
+### Prompt Guides
 Prompt Guide (The "Medieval Classic" Recipe)
 
 When the script asks for inputs, here are the prompts used to create the default Medieval theme. Use these as a template for your own creations!
@@ -107,6 +108,16 @@ Medeival 1600s castles with white marble and black obsidian as classical a chess
 4. Animation Style:
 
 "Create ultra-violent Excalibur-1980-style medieval fantasy battle animations showing chess pieces as armored warriors made of metal, bone, and enchanted stone brutally hacking, cleaving, crushing, and shattering each other during captures—for example pawns hacking down pawns, knights impaling pawns, rooks smashing queens, bishops cleaving rooks—rendered with hyper-stylized metallic blood-spray, glowing runic energy bursts, slow-motion sword impacts, shattered armor fragments, fog-soaked battle lighting, heavy chromatic bloom, mythic brutality, and the dark, operatic, blood-drenched tone of John Boorman’s Excalibur. IMPORTANT ALWAYS source the characters from the images do not change their appearance or style. These are medieval fantasy chess pieces NOT generic fantasy characters. DO NOT make cartoons or low detail images. Use highly detailed realistic textures and lighting. DO NOT use modern weapons or technology. ONLY the weapons the piece is holding."
+
+1. Theme Title:
+aliensvsrobots
+
+2. Board Style:"A futuristic sci-fi checkerboard. The dark squares are deep space windows showing a hyper-realistic universe with distant stars, purple nebulae, and cosmic void. The light squares are industrial robot-factory floors made of brushed chrome, exposed circuitry, and glowing blue data lines. High contrast between the organic cosmic void and the structured mechanical metal. Top-down orthographic view, seamless texture, 8k resolution, photorealistic."
+
+
+3. Piece Style: "1950s Sci-Fi B-Movie Aesthetic. IF WHITE (The Robots): Retro-futuristic 'Forbidden Planet' style robots made of polished chrome, glass domes, and blinking lights. White Pawn: A clunky, boxy frontline 'tin man' robot. White Rook: A retro-silver rocket transport ship upright. White Knight: A robot lancer riding a mechanical quadruped steed. White Bishop: A robotic high-priest with a tesla-coil staff. White Queen: A sleek, feminine chrome android 'Maria from Metropolis' style. White King: A massive Supreme Leader robot with a radar-dish crown. IF BLACK (The Aliens): Gruesome 'Mars Attacks' style invaders with exposed brains and green skin. Black Pawn: A bug-eyed minion alien with a ray gun. Black Rook: A metallic flying saucer UFO hovering on landing gear. Black Knight: An alien warrior riding a terrifying organic spider-crab beast with a lance. Black Bishop: An Alien High Priest in strange robes holding a mystic artifact. Black Queen: A terrifying, slender Alien Matriarch. Black King: The Supreme Leader Alien with a cape and pulsating brain. RENDER STYLE: Studio model photography, high detail, sharp focus, contrasting materials (Chrome vs Slime)."
+
+4. Animation Style: "1950s Sci-Fi Movie Special Effects style. White (Robots) vs Black (Aliens). Violent, campy, colorful, and destructive, like a high-budget B-movie finale. Standard Kills: Robots use lasers, mechanical crushing, or rocket exhaust. Aliens use green slime rays, brain blasts, or summoning tentacles. Rooks use death rays (UFO/Rocket). Knights trample enemies. ROYALTY LOGIC (Make these EPIC): 1. If King or Queen is ATTACKING: They use 'Ultimate Attacks'. The Robot King unleashes a massive chest-mounted disintegration beam or calls down an orbital laser strike. The Robot Queen uses high-speed plasma blades to slice the enemy into scrap. The Alien King uses telekinetic brain-waves to explode the enemy from the inside. The Alien Queen uses a sonic scream or tail-impale to obliterate the target. 2. If King or Queen is DYING: It must be a dramatic, slow-motion defeat. Robots spark violently, leak oil, short-circuit, and topple over like a fallen statue. Aliens screech in horror, dissolve into a puddle of bubbling green goo, or explode into visceral slime. Theme: High contrast, neon lasers, fog, and retro-futuristic destruction."
 
 🌌 Theme Ideas
 
