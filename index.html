@@ -406,17 +406,44 @@
                         sel.add(opt);
                     });
 
-                    const url = new URL(window.location.href);
-                    const forcedTheme = url.searchParams.get('theme');
-                    const forcedRoom  = url.searchParams.get('room');
+                const url = new URL(window.location.href);
+                const forcedTheme = url.searchParams.get('theme');
+                const forcedRoom  = url.searchParams.get('room');
+                const hostColor   = url.searchParams.get('hostColor');  // 'w' or 'b'
 
-                    // Only lock if this is a joiner (room+theme in URL)
-                    if (forcedRoom && forcedTheme && themes.includes(forcedTheme)) {
-                        sel.value = forcedTheme;
-                        sel.disabled = true;
-                    } else {
-                        sel.disabled = false;
-                        sel.value = themes[themes.length - 1]; // default to last
+                // JOINER: came in via room link
+                if (forcedRoom && forcedTheme && themes.includes(forcedTheme)) {
+                    // Lock theme
+                    sel.value = forcedTheme;
+                    sel.disabled = true;
+                
+                    // Force MULTIPLAYER mode
+                    GAME_MODE = 'pvp';
+                    const modeGroup = document.getElementById('mode-toggle-group');
+                    if (modeGroup) {
+                        const btns = modeGroup.querySelectorAll('.toggle-btn');
+                        btns.forEach(b => b.classList.remove('active'));
+                        // Second button is "Vs Friend (Online)"
+                        if (btns[1]) btns[1].classList.add('active');
+                        // Prevent changing mode
+                        modeGroup.style.pointerEvents = 'none';
+                    }
+                
+                    // Force PLAYER COLOR to opposite of hostColor
+                    if (hostColor === 'w' || hostColor === 'b') {
+                        PLAYER_COLOR = (hostColor === 'w') ? 'b' : 'w';
+                        refreshColorToggleUI();
+                    
+                        const colorGroup = document.getElementById('color-toggle-group');
+                        if (colorGroup) {
+                            // Lock the color toggle so joiner can't flip to white
+                            colorGroup.style.pointerEvents = 'none';
+                        }
+                    }
+                } else {
+                    // Normal single-player / host behavior
+                    sel.disabled = false;
+                    sel.value = themes[themes.length - 1]; // default to last
                     }
                 })
                 .catch(e => {
@@ -620,13 +647,20 @@
                 // HOST
                 ROOM_ID = Math.random().toString(36).substring(2, 8).toUpperCase();
                 IS_HOST = true;
-                            
+
                 // IMPORTANT: use a COPY of the URL so we don't mutate the real page URL
                 const shareUrl = new URL(window.location.href);
                 shareUrl.searchParams.set('room', ROOM_ID);
+
+                // Include the CURRENT_THEME so joiner is locked to it
                 if (CURRENT_THEME) {
                     shareUrl.searchParams.set('theme', CURRENT_THEME);
                 }
+
+                // Include the HOST'S COLOR so joiner can be forced to the opposite
+                // PLAYER_COLOR is whatever the host picked in the UI ("White" or "Black" button)
+                shareUrl.searchParams.set('hostColor', PLAYER_COLOR);  // 'w' or 'b'
+
                 const shareLink = shareUrl.toString();
                 CURRENT_SHARE_LINK = shareLink;
 
@@ -635,6 +669,7 @@
                 document.getElementById('share-link-wrapper').style.display = 'block';
 
                 document.getElementById('status').innerText = "Share the link and waiting for your friend to join...";
+
             }
 
             initMultiplayerConnection();
@@ -684,12 +719,14 @@
                 const msg = JSON.parse(event.data);
 
                 if (msg.type === 'start') {
-                    // Server randomizes colors; we obey
                     if (joinTimeout) clearTimeout(joinTimeout);
-                    PLAYER_COLOR = msg.color; // 'w' or 'b'
+                
+                    // DO NOT override PLAYER_COLOR here.
+                    // Host keeps their chosen color.
+                    // Joiner already had PLAYER_COLOR set to opposite of hostColor in loadThemes().
                     refreshColorToggleUI();
-
-                    // Re-orient camera based on assigned color
+                
+                    // Re-orient camera based on the already-decided PLAYER_COLOR
                     const isMobile = window.innerWidth < 768;
                     if (PLAYER_COLOR === 'w') {
                         const zPos = isMobile ? 110 : 80;
@@ -703,8 +740,8 @@
                         camera.lookAt(0,0,0);
                         controls.target.set(0,0,0);
                     }
-
-                    document.getElementById('status').innerText = 
+                
+                    document.getElementById('status').innerText =
                         "Game started! " + (game.turn() === 'w' ? 'White' : 'Black') + " to move.";
 
                 } else if (msg.type === 'move') {
