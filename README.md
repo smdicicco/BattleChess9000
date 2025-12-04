@@ -41,7 +41,7 @@ python3 -m http.server
 
 Play:
 
-Open your browser to: http://localhost:8000/game.html
+Open your browser to: http://localhost:8000/index.html
 
 Select "medieval_classic" from the dropdown menu.
 
