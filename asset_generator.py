@@ -26,7 +26,9 @@ API_KEY = os.environ.get("GEMINI_API_KEY")
 # ============================================================================
 def banana_generate(prompt: str, input_paths: Optional[List[str]] = None, 
                     out_dir: str = ".", n: int = 1,
-                    model: str = os.environ.get("IMAGE_MODEL", "gemini-3-pro-image-preview")):
+                    model: Optional[str] = None):
+    
+    model = model or os.environ.get("IMAGE_MODEL", "gemini-3-pro-image-preview")
     
     if not API_KEY:
         print("❌ GEMINI_API_KEY not found.")
@@ -88,7 +90,9 @@ def banana_generate(prompt: str, input_paths: Optional[List[str]] = None,
 # ============================================================================
 def veo_generate_video(prompt: str, image_path: Optional[str], out_dir: str = ".",
                        aspect_ratio="16:9", resolution="720p",
-                       model=os.environ.get("VIDEO_MODEL", "veo-3.1-generate-preview")):
+                       model: Optional[str] = None):
+    
+    model = model or os.environ.get("VIDEO_MODEL", "veo-3.1-generate-preview")
     
     Path(out_dir).mkdir(parents=True, exist_ok=True)
     client = genai.Client(api_key=API_KEY)
@@ -396,10 +400,56 @@ def main():
     print("   *** QUOTA-SAFE + AUTO-COMPRESS *** ")
     print("=========================================")
     
+    # --- THEME SELECTION ---
+    existing_themes = sorted([d.name for d in Path("assets").iterdir() if d.is_dir() and not d.name.startswith('.')])
     default_theme = "obsidian_gothic"
-    theme_title = input(f"\nTheme Title (folder name) [default: {default_theme}]: ").strip() or default_theme
+
+    print("\n--- Available Themes ---")
+    for i, t in enumerate(existing_themes, 1):
+        print(f"{i}. {t}")
+    print("------------------------")
+
+    user_input = input(f"Select number or enter new theme name [default: {default_theme}]: ").strip()
+
+    if user_input.isdigit() and 1 <= int(user_input) <= len(existing_themes):
+        theme_title = existing_themes[int(user_input) - 1]
+    else:
+        theme_title = user_input or default_theme
+
     theme_title = "".join([c for c in theme_title if c.isalnum() or c in ('_', '-')]).lower()
     
+    # --- MODEL SELECTION ---
+    current_video_model = os.environ.get("VIDEO_MODEL", "veo-3.1-generate-preview")
+    current_image_model = os.environ.get("IMAGE_MODEL", "gemini-3-pro-image-preview")
+    
+    print(f"\n--- Model Configuration ---")
+    print(f"   🖼️  Current Image Model: {current_image_model}")
+    print(f"   🎥 Current Video Model: {current_video_model}")
+
+    available_veo_models = [
+        "veo-3.1-generate-preview",
+        "veo-3.1-fast-generate-preview",
+        "veo-3.0-generate-001",
+        "veo-3.0-fast-generate-001",
+        "veo-2.0-generate-001"
+    ]
+    
+    print("\n--- Available Veo Models ---")
+    for i, m in enumerate(available_veo_models, 1):
+        print(f"{i}. {m}")
+        
+    model_input = input(f"Select number or enter model name [default: {current_video_model}]: ").strip()
+    
+    if model_input.isdigit() and 1 <= int(model_input) <= len(available_veo_models):
+        selected_video_model = available_veo_models[int(model_input) - 1]
+    elif model_input:
+        selected_video_model = model_input
+    else:
+        selected_video_model = current_video_model
+        
+    os.environ["VIDEO_MODEL"] = selected_video_model
+    print(f"   ✅ Using Video Model: {selected_video_model}")
+
     # 1. UPDATE MANIFEST IMMEDIATELY
     base_dir = os.path.join("assets", theme_title)
     pieces_dir = os.path.join(base_dir, "pieces")
