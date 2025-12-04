@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Mobile-friendly viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gemini Battle Chess - Powered by Google Gemini, Nano Banana 3, and Veo3</title>
+    <title>Battle Chess 9000 - Powered by Gemini 3, Nano Banana 3, and Veo 3</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; user-select: none; -webkit-user-select: none; }
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; user-select: none; }
         
         .ui-layer { position: absolute; width: 100%; text-align: center; pointer-events: none; z-index: 10; }
-        #hud { top: 20px; }
-        h1 { margin: 0; color: #fff; text-transform: uppercase; letter-spacing: 4px; font-size: 24px; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        #hud { top: 20px; text-shadow: 0 0 10px rgba(0,255,0,0.8); }
+        h1 { margin: 0; color: #fff; text-transform: uppercase; letter-spacing: 4px; font-size: 24px; }
         #status { color: #aaa; margin-top: 5px; font-size: 16px; font-weight: bold; }
-        #player-display { color: #444; font-size: 14px; margin-top: 5px; font-family: monospace; letter-spacing: 1px;}
+        #player-display { color: #4da6ff; font-size: 14px; margin-top: 5px; font-family: monospace; letter-spacing: 1px; text-shadow: 0 0 5px #4da6ff;}
 
         /* CHECK ALERT */
         #check-alert { 
@@ -37,7 +36,7 @@
         
         .capture-icon { 
             width: 45px; height: 45px; object-fit: contain; 
-            filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
             transition: transform 0.2s;
         }
         .capture-icon:hover { transform: scale(1.5); }
@@ -45,46 +44,75 @@
         /* MODALS */
         .modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); z-index: 2000; 
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 2000; 
             display: none; flex-direction: column; align-items: center; justify-content: center;
             color: white; pointer-events: auto; overflow-y: auto;
         }
         .modal.active { display: flex; }
-        
+
         .menu-box { 
-            background: #1a1a1a; padding: 40px; border: 1px solid #333; 
-            box-shadow: 0 0 50px rgba(0,0,0,1); text-align: center; border-radius: 8px;
+            background: rgba(20, 20, 20, 0.95); padding: 40px; border: 1px solid #444; 
+            box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 20px rgba(77, 166, 255, 0.2); 
+            text-align: center; border-radius: 8px;
             max-width: 500px; width: 90%;
             position: relative;
         }
 
-        /* END GAME SCROLLABLE CONTENT */
-        .endgame-content {
-            max-height: 80vh;
-            overflow-y: auto;
-            text-align: left;
-            padding-right: 10px;
+        /* AVATAR GRID */
+        .avatar-grid { 
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 15px 0;
+            background: #000; padding: 10px; border-radius: 4px; border: 1px solid #333;
         }
+        .avatar-option { 
+            background: #1a1a1a; border: 2px solid #333; border-radius: 4px; padding: 2px; 
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+            aspect-ratio: 1 / 1;
+        }
+        .avatar-option:hover { border-color: #666; background: #333; }
+        .avatar-option.selected { border-color: #28a745; background: #1a3a1a; box-shadow: 0 0 10px #28a745; }
+        .avatar-option img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* Scrollbar styling */
-        .endgame-content::-webkit-scrollbar { width: 8px; }
-        .endgame-content::-webkit-scrollbar-track { background: #111; }
-        .endgame-content::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        /* LOBBY */
+        .player-list { 
+            list-style: none; padding: 0; margin: 20px 0; 
+            max-height: 250px; overflow-y: auto; border: 1px solid #333; background: #000;
+        }
+        .player-item { 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 10px; background: #111; border-bottom: 1px solid #222;
+        }
+        .player-item:hover { background: #222; }
+        .player-info { display: flex; align-items: center; gap: 10px; text-align: left; }
+        .player-stats { font-size: 11px; color: #888; display: block; }
         
+        .challenge-btn { 
+            width: auto; padding: 5px 15px; background: #4da6ff; border: none; 
+            color: #000; font-weight: bold; font-size: 12px; cursor: pointer;
+            box-shadow: 0 0 10px rgba(77, 166, 255, 0.4);
+        }
+        .challenge-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(77, 166, 255, 0.8); }
+
+        /* CHALLENGE POPUP */
+        .challenge-alert {
+            background: #4da6ff; color: #000; padding: 20px; border-radius: 8px;
+            animation: pulse-alert 1s infinite;
+        }      
+
         select, button, input[type="text"], .toggle-group { 
-            display: block; width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box;
-            font-size: 16px; background: #333; color: white; border: 1px solid #555; 
-            cursor: pointer; 
+            display: block; width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box;
+            font-size: 16px; background: #222; color: white; border: 1px solid #444; 
+            cursor: pointer; transition: 0.3s;
         }
         input[type="text"] { cursor: text; text-align: center; font-weight: bold; border: 1px solid #444; }
-        input[type="text"]:focus { outline: none; border-color: #28a745; }
+        input[type="text"]:focus { outline: none; border-color: #28a745; box-shadow: 0 0 15px rgba(40, 167, 69, 0.3); }
 
-        button { background: #444; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        button:hover { background: #666; }
-        .toggle-group { display: flex; gap: 10px; background: transparent; border: none; padding: 0; }
-        .toggle-btn { flex: 1; background: #222; border: 1px solid #444; padding: 15px; }
-        .toggle-btn.active { background: #eee; color: black; border-color: white; }
-
+        button { background: #333; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        button:hover { background: #444; border-color: #666; }
+        
+        .main-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .action-row { display: flex; gap: 10px; }
+        .action-btn { flex: 1; border: none; }
+        
         .promo-options { display: flex; gap: 20px; margin-top:20px; justify-content: center;}
         .promo-piece { 
             width: 60px; height: 60px; background: #333; border: 2px solid #555;
@@ -92,18 +120,6 @@
             font-size: 30px; cursor: pointer; color: #fff;
         }
         .promo-piece:hover { background: #555; border-color: white; }
-
-        /* PROMPTS DISPLAY */
-        .prompt-block {
-            background: #000; border: 1px solid #333; padding: 15px; margin-bottom: 20px;
-            font-family: monospace; font-size: 12px; color: #0f0; white-space: pre-wrap;
-            text-align: left;
-        }
-        h3 { border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 30px; color: #ddd; }
-        p { line-height: 1.6; color: #bbb; }
-        .highlight { color: #fff; font-weight: bold; }
-        a { color: #4da6ff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
 
         #battle-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -116,96 +132,200 @@
         #skip-btn { width: auto; display: inline-block; background: transparent; border: 2px solid white; margin-top: 20px; }
         #skip-btn:hover { background: white; color: black; }
 
-        /* --- MOBILE / RESPONSIVE STYLES --- */
+        .link-box {
+            background: #000; border: 1px solid #4da6ff; color: #4da6ff;
+            padding: 10px; width: 100%; text-align: center; font-family: monospace;
+            margin-bottom: 15px; cursor: pointer;
+        }
+
+        .endgame-content { max-height: 80vh; overflow-y: auto; text-align: left; padding-right: 10px; }
+        .endgame-content::-webkit-scrollbar { width: 8px; }
+        .endgame-content::-webkit-scrollbar-track { background: #111; }
+        .endgame-content::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        .prompt-block {
+            background: #000; border: 1px solid #333; padding: 15px; margin-bottom: 20px;
+            font-family: monospace; font-size: 12px; color: #0f0; white-space: pre-wrap;
+            text-align: left;
+        }
+        h3 { border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 30px; color: #ddd; }
+        p { line-height: 1.6; color: #bbb; }
+        .highlight { color: #fff; font-weight: bold; }
+        a { color: #4da6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
         @media (max-width: 768px) {
-            /* Shrink the HUD text */
-            h1 { font-size: 16px; letter-spacing: 2px; }
-            #status { font-size: 14px; }
-            #player-display { font-size: 12px; }
-
-            /* Make modals fit nicely on phone screens */
-            .menu-box { 
-                width: 95%; 
-                padding: 15px; 
-                max-height: 95vh; 
-                overflow-y: auto;
-            }
-            
-            /* Adjust buttons and inputs for touch targets */
-            button, select, input[type="text"], .toggle-btn {
-                padding: 15px;
-                font-size: 14px;
-            }
-
-            /* Move Capture Trackers to bottom to save side-width */
-            .tracker {
-                flex-direction: row;
-                width: 100%;
-                height: 40px;
-                top: auto;
-                bottom: 10px;
-                padding: 0;
-                justify-content: center;
-                gap: 5px;
-            }
+            .menu-box { width: 95%; padding: 15px; max-height: 95vh; overflow-y: auto; }
+            .avatar-grid { grid-template-columns: repeat(4, 1fr); }
+            .tracker { flex-direction: row; width: 100%; height: 40px; top: auto; bottom: 10px; padding: 0; justify-content: center; gap: 5px; }
             .tracker-left { left: 0; bottom: 50px; align-items: center; }
             .tracker-right { right: 0; bottom: 10px; align-items: center; }
-            
             .capture-icon { width: 35px; height: 35px; }
+            #check-alert { font-size: 40px; width: 80%; }
+        }
+        /* LIGHTING UI */
+        .lighting-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #555;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.9);
+            z-index: 30;
+            pointer-events: auto;
+        }
 
-            /* Resize the massive CHECK alert */
-            #check-alert {
-                font-size: 40px;
-                padding: 10px 20px;
-                border-width: 3px;
-                width: 80%;
-                text-align: center;
-            }
+        .lighting-toggle:hover {
+            background: rgba(40,40,40,0.95);
+        }
 
-            /* Make promotion pieces tappable */
-            .promo-piece { width: 50px; height: 50px; font-size: 25px; }
-            
-            .endgame-content { max-height: 60vh; }
+        .lighting-panel {
+            position: absolute;
+            top: 62px;
+            right: 20px;
+            width: 220px;
+            background: rgba(10,10,10,0.96);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px 12px 12px;
+            z-index: 30;
+            color: #ddd;
+            font-size: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.95);
+            pointer-events: auto;
+        }
+
+        .lighting-panel.hidden {
+            display: none;
+        }
+
+        .lighting-panel h3 {
+            margin: 0 0 6px;
+            font-size: 12px;
+            text-align: left;
+            color: #4da6ff;
+        }
+
+        .lighting-panel label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .lighting-panel span.value {
+            color: #888;
+            font-family: monospace;
+        }
+
+        .lighting-panel input[type="range"] {
+            width: 100%;
         }
     </style>
 
-    <!-- FIXED: no stray space in this URL -->
+    <!-- CORE THREE.JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+    <!-- POST PROCESSING SHADERS (BLOOM) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 </head>
 <body>
 
     <!-- START MENU -->
     <div id="start-menu" class="modal active">
         <div class="menu-box">
-            <!-- INSPIRATION IMAGE -->
-            <img src="battle_chess_1988.png" alt="1988 Inspiration" style="max-width: 100%; max-height: 180px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; box-shadow: 0 0 15px rgba(0,0,0,0.8);">
-            
-            <h2 style="margin-top:0; margin-bottom: 5px;">BATTLE CHESS 9000</h2>
-            <p style="color: #666; font-size: 13px; font-style: italic; margin-top: 0; margin-bottom: 20px;">
-                Inspired by Battle Chess for DOS 1988
-            </p>
-            
+        <!-- INSPIRATION IMAGE -->
+        <img src="battle_chess_1988.png" alt="1988 Inspiration"
+             style="max-width: 100%; max-height: 180px; margin-bottom: 15px;
+                    border-radius: 4px; border: 1px solid #444;
+                    box-shadow: 0 0 15px rgba(0,0,0,0.8);">
+
+        <h2 style="margin-top:0; margin-bottom: 5px; color: #4da6ff; text-shadow: 0 0 10px #4da6ff;">
+            BATTLE CHESS 9000
+        </h2>
+        <p style="color: #666; font-size: 13px; font-style: italic; margin-top: 0; margin-bottom: 20px;">
+            Inspired by Battle Chess for DOS 1988
+        </p>
             <input type="text" id="player-name-input" placeholder="ENTER YOUR NAME" maxlength="15">
             
-            <label style="margin-top: 20px;">Select Theme</label>
-            <select id="theme-select"><option disabled selected value="">Loading themes...</option></select>
+            <label style="margin-top: 15px; color: #aaa; font-size: 14px;">Select Game Theme</label>
+            <select id="theme-select" onchange="updateAvatarGrid()"><option disabled selected value="">Loading themes...</option></select>
             
-            <label style="margin-top:15px; display:block">Play As</label>
-            <div class="toggle-group" id="color-toggle-group">
-                <button class="toggle-btn active" onclick="setPlayerColor('w')">White</button>
-                <button class="toggle-btn" onclick="setPlayerColor('b')">Black</button>
+            <label style="margin-top: 15px; color: #aaa; font-size: 14px;">Choose Avatar</label>
+            <div id="avatar-grid" class="avatar-grid"></div>
+            
+            <div class="main-actions">
+                <div class="action-row">
+                    <button onclick="joinLobby()" style="background:#4da6ff; color:black; flex:2; box-shadow: 0 0 15px rgba(77, 166, 255, 0.4);">ENTER LOBBY</button>
+                    <button onclick="createPrivateGame()" style="background:#8a2be2; color:white; flex:1; box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);">INVITE</button>
+                </div>
+                <div class="action-row">
+                    <button class="action-btn" onclick="startGameAI()">VS AI (SOLO)</button>
+                    <button class="action-btn" onclick="startGameLocal()">VS FRIEND (LOCAL)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOBBY MENU -->
+    <div id="lobby-menu" class="modal">
+        <div class="menu-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:10px;">
+                <h2 style="margin:0; color:#4da6ff;">LOBBY</h2>
+                <button onclick="disconnectSocket()" style="width:auto; padding:5px 10px; font-size:12px; background:#444;">Exit</button>
+            </div>
+            
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:15px; background: #222; padding: 10px; border-radius: 4px;">
+                <img id="my-avatar-display" src="" style="width:40px; height:40px; object-fit: contain;">
+                <h3 id="my-name-display" style="margin:0; color:#28a745;"></h3>
             </div>
 
-            <label style="margin-top:15px; display:block">Mode</label>
-            <div class="toggle-group" id="mode-toggle-group">
-                <button class="toggle-btn active" onclick="setGameMode('ai')">Vs AI</button>
-                <button class="toggle-btn" onclick="setGameMode('pvp')">Vs Friend (Online)</button>
-            </div>
+            <p style="text-align: left; color: #888; font-size: 12px; margin-bottom: 5px;">ONLINE COMMANDERS:</p>
+            <ul id="lobby-list" class="player-list">
+                <li style="padding:10px; color:#666;">Connecting to server...</li>
+            </ul>
+        </div>
+    </div>
 
-            <button onclick="startGame()" style="margin-top:20px; background: #28a745; border:none;">Start Battle</button>
+    <!-- INVITE LINK WAITING ROOM -->
+    <div id="invite-menu" class="modal">
+        <div class="menu-box">
+            <h2 style="color: #8a2be2; text-shadow: 0 0 10px #8a2be2;">PRIVATE GAME</h2>
+            <p>Share this link to battle:</p>
+            <input type="text" id="invite-link-box" class="link-box" readonly onclick="this.select(); document.execCommand('copy'); alert('Link Copied!')">
+            <p style="font-size: 12px; color: #666;">Waiting for opponent to join...</p>
+            <div class="action-row">
+                <button onclick="disconnectSocket()" style="background:#444;">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHALLENGE POPUP -->
+    <div id="challenge-modal" class="modal">
+        <div class="menu-box challenge-alert">
+            <h2>⚔️ CHALLENGE! ⚔️</h2>
+            <p id="challenger-name">Player X wants to battle!</p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button onclick="acceptChallenge()" style="background:white; color:black; flex:1;">ACCEPT</button>
+                <button onclick="declineChallenge()" style="background:#222; color:white; flex:1;">DECLINE</button>
+            </div>
         </div>
     </div>
 
@@ -222,45 +342,13 @@
         </div>
     </div>
 
-    <!-- GAME OVER / INFO MODAL -->
+    <!-- GAME OVER -->
     <div id="game-over-modal" class="modal">
         <div class="menu-box" style="width: 800px; max-width: 95%;">
             <div class="endgame-content">
                 <h1 id="end-title" style="text-align: center; color: #28a745;">GAME OVER</h1>
                 <p id="end-reason" style="text-align: center; font-size: 18px; margin-bottom: 30px;"></p>
-
-                <div style="background: #222; padding: 20px; border-left: 4px solid #4da6ff; margin-bottom: 20px;">
-                    <p style="margin-top:0; font-style: italic;">
-                        "This game was fully vibe coded over an afternoon with <strong>Gemini-3, Nano Banana 3, and Veo3</strong> plus an API key."
-                    </p>
-                    <p>
-                        Did you enjoy your Battle Chess experience? Did the animations live up to your expectations?
-                    </p>
-                    <p style="font-weight: bold; color: white;">
-                        Please write up your experience in a Tweet, LinkedIn post, or Blog! Share with your kids, friends, and colleagues.
-                    </p>
-                </div>
-
-                <h3>How It Was Made (The Prompts)</h3>
-                <p>Want to fork this? Run the asset-generator in the repo and use these exact prompts to recreate this theme:</p>
-                
-                <p class="highlight">1. Theme Title:</p>
-                <div class="prompt-block">medieval_classic</div>
-
-                <p class="highlight">2. Board Style:</p>
-                <div class="prompt-block">Medeival 1600s castles with white marble and black obsidian as classical a chessboard you can make with these matierals at the time. Do NOT display pieces just the board and its polished matierals of marble and black obsidian.</div>
-
-                <p class="highlight">3. Piece Style:</p>
-                <div class="prompt-block">"These are chess pieces in a set. Do not deviate from classic chess pieces but be creative. The Pawns should be peasants or orcs not just chess pawns. As with the rest of the pieces. 1600s medieval European style with White as holy good and Black as gothic evil, showing a noble crowned king, regal robed queen, Catholic bishops with mitres, armored knights on warhorses, fortified stone castle rooks, and simple foot-soldier pawns for White, versus a dark overlord king with spiked crown, sinister robed queen, corrupted plague-priest bishops, skeletal or demonic knights on shadow steeds, dragon-tower rooks with infernal accents, and ragged disposable pawns for Black, all rendered individually in hand-painted medieval illustration style with clear chess silhouettes, high detail, dramatic shading, parchment background, 1:1 aspect ratio, and consistent lighting. IMPORTANT use highly detailed white marble with gold accents for white pieces and black obsidian with dark silver accents for black pieces. They should be highly detailed and look like they were carved from those materials and polished to a high shine. DO NOT MAKE CARTOONS"</div>
-
-                <p class="highlight">4. Animation Style:</p>
-                <div class="prompt-block">"Create ultra-violent Excalibur-1980-style medieval fantasy battle animations showing chess pieces as armored warriors made of metal, bone, and enchanted stone brutally hacking, cleaving, crushing, and shattering each other during captures—for example pawns hacking down pawns, knights impaling pawns, rooks smashing queens, bishops cleaving rooks—rendered with hyper-stylized metallic blood-spray, glowing runic energy bursts, slow-motion sword impacts, shattered armor fragments, fog-soaked battle lighting, heavy chromatic bloom, mythic brutality, and the dark, operatic, blood-drenched tone of John Boorman’s Excalibur. IMPORTANT ALWAYS source the characters from the images do not change their appearance or style. These are medieval fantasy chess pieces NOT generic fantasy characters. DO NOT make cartoons or low detail images. Use highly detailed realistic textures and lighting. DO NOT use modern weapons or technology. ONLY the weapons the piece is holding."</div>
-
-                <hr style="border-color: #333; margin: 30px 0;">
-
                 <div style="text-align: center;">
-                    <p><strong>Fork the Repo:</strong> <br> <a href="https://github.com/automateyournetwork/BattleChess9000" target="_blank">github.com/automateyournetwork/BattleChess9000</a></p>
-                    <p><strong>Contact:</strong> <br> <a href="mailto:ptcapo@gmail.com">ptcapo@gmail.com</a></p>
                     <button onclick="location.reload()" style="margin-top: 20px;">Play Again</button>
                 </div>
             </div>
@@ -271,35 +359,32 @@
         <h1>Battle Chess AI</h1>
         <div id="player-display"></div>
         <div id="status">Waiting for game start...</div>
+    </div>
 
-        <!-- Share link for online mode -->
-        <div id="share-link-wrapper"
-             style="margin-top:10px; display:none; pointer-events:auto; text-align:center;">
+    <div id="lighting-toggle" class="lighting-toggle" title="Lighting settings">
+        ☀
+    </div>
 
-            <span style="color:#888; font-size:12px; display:block; margin-bottom:6px;">
-                Send this link to your friend:
-            </span>
-        
-            <button id="copy-link-btn"
-                    onclick="copyShareLink()"
-                    style="display:inline-block; width:auto; padding:6px 14px; font-size:12px;
-                           border-radius:4px; border:1px solid #555;
-                           background:#333; color:#eee; cursor:pointer;">
-                📋 Copy Invite Link
-            </button>
-        
-            <input id="share-link-input"
-                   type="text"
-                   readonly
-                   style="position:absolute; left:-9999px; opacity:0;">
-        
-            <div id="copy-link-status"
-                 style="color:#5ccc5c; font-size:11px; margin-top:6px;"></div>
-        </div>
+    <div id="lighting-panel" class="lighting-panel hidden">
+        <h3>Lighting</h3>
+
+        <label>Exposure <span id="val-exposure" class="value">1.0</span></label>
+        <input id="slider-exposure" type="range" min="0.3" max="1.5" step="0.05" value="1.0">
+
+        <label>Spotlight <span id="val-spot" class="value">1.10</span></label>
+        <input id="slider-spot" type="range" min="0" max="2" step="0.05" value="1.10">
+
+        <label>Ambient <span id="val-ambient" class="value">0.45</span></label>
+        <input id="slider-ambient" type="range" min="0" max="1.5" step="0.05" value="0.45">
+
+        <label>Mouse Glow <span id="val-mouse" class="value">0.80</span></label>
+        <input id="slider-mouse" type="range" min="0" max="2" step="0.05" value="0.80">
+
+        <label>Bloom <span id="val-bloom" class="value">0.25</span></label>
+        <input id="slider-bloom" type="range" min="0" max="1.0" step="0.05" value="0.25">
     </div>
 
     <div id="check-alert">CHECK!</div>
-
     <div id="tracker-w" class="tracker tracker-left"></div>
     <div id="tracker-b" class="tracker tracker-right"></div>
 
@@ -309,82 +394,112 @@
         <button id="skip-btn">Skip Animation</button>
     </div>
 
-    <!-- CHAT PANEL (default hidden; shown in PvP mode) -->
-    <div id="chat-panel"
-         style="position:fixed; bottom:10px; left:10px; width:260px; max-height:200px; background:rgba(0,0,0,0.8); border:1px solid #444; border-radius:6px; display:none; flex-direction:column; z-index:20; pointer-events:auto; font-size:12px;">
-        <div style="padding:4px 8px; border-bottom:1px solid #333; color:#ccc; display:flex; justify-content:space-between; align-items:center;">
-            <span>Room Chat</span>
-            <span style="font-size:10px; color:#777;">[T] to focus</span>
-        </div>
-        <div id="chat-messages"
-             style="flex:1; padding:6px 8px; overflow-y:auto; color:#ddd; font-family:monospace;"></div>
-        <div style="display:flex; gap:4px; padding:4px 4px 6px 4px;">
-            <input id="chat-input"
-                   type="text"
-                   placeholder="type message..."
-                   style="flex:1; padding:4px 6px; border-radius:4px; border:1px solid #444; background:#111; color:#eee; font-size:12px;">
-            <button id="chat-send-btn"
-                    style="padding:4px 8px; border-radius:4px; border:1px solid #555; background:#333; color:#eee; cursor:pointer; font-size:12px;">Send</button>
-        </div>
-    </div>
-
     <script>
+        // --- CONFIG & GLOBALS ---
+        const WS_URL = "wss://battlechess9000-multiplayer-service-960937205198.us-central1.run.app"; 
+        
         let CURRENT_THEME = '';
         let PLAYER_COLOR = 'w';
         let PLAYER_NAME = 'Guest';
-        let CURRENT_SHARE_LINK = "";
-
-        // Game modes
-        let GAME_MODE = 'ai';      // 'ai' or 'pvp'
-        let ROOM_ID = null;
-        let IS_HOST = false;
-        let socket = null;
-        let joinTimeout = null;
-        const JOIN_TIMEOUT_MS = 180000; // 180 seconds
-
-        // Cloud Run WebSocket endpoint
-        const WS_URL = "wss://battlechess9000-multiplayer-service-960937205198.us-central1.run.app";
-
         const BOARD_SQUARE_SIZE = 10;
         const BOARD_OFFSET = (8 * BOARD_SQUARE_SIZE) / 2 - (BOARD_SQUARE_SIZE / 2);
         let ASSETS_PATH = '';
 
         const game = new Chess();
+        let socket = null;
+        let myClientId = null;
+        let currentRoomId = null;
+        let selectedAvatar = 'w_k'; 
+        let isMultiplayer = false;
+        let isAIEnabled = false; 
+        let isAIThinking = false;
+        let pendingChallengeId = null;
+        
         let selectedSquare = null;
         let selectedMesh = null;
-        let isAIThinking = false;
         let pendingPromotionMove = null;
 
+        const IN_PROGRESS_THEMES = ["super_mario_world", "justice_league_vs_legion_of_doom"];
+
+        // --- THREE.JS SETUP ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111);
-        scene.fog = new THREE.Fog(0x111111, 40, 300);
+        scene.background = new THREE.Color(0x050505);
+        scene.fog = new THREE.FogExp2(0x050505, 0.002);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+
+        // Removed ReinhardToneMapping to prevent dull/muted colors
         document.body.appendChild(renderer.domElement);
+
+        // POST PROCESSING (BLOOM)
+        let composer;
+        const renderScene = new THREE.RenderPass(scene, camera);
+        const bloomPass = new THREE.UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            1.0, 0.3, 0.85
+        );
+        // Only bloom the brightest highlights
+        bloomPass.threshold = 0.7;   // 0.6–0.8 is a good range
+        bloomPass.strength = 0.25;   // subtle glow, not nuclear
+        bloomPass.radius   = 0.35;
+        
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        // LIGHTING (ENHANCED - Balanced)
+        const ambientLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.45); // Slightly brightened
         scene.add(ambientLight);
-        const spotLight = new THREE.SpotLight(0xffffff, 1.2);
-        spotLight.position.set(30, 100, 30);
+
+        const spotLight = new THREE.SpotLight(0xffaa00, 1.1); // Slightly brightened
+        spotLight.position.set(30, 100, 50);
         spotLight.castShadow = true;
+        spotLight.shadow.mapSize.width = 2048;
+        spotLight.shadow.mapSize.height = 2048;
         scene.add(spotLight);
+
+        // Mouse light raised up to avoid being inside pieces
+        const mouseLight = new THREE.PointLight(0x4da6ff, .8, 50); // Reduced intensity, increased distance
+        mouseLight.position.set(0, 20, 0); // Raised y from 5 to 20
+        scene.add(mouseLight);
 
         const textureLoader = new THREE.TextureLoader();
         const piecesMap = {};
         const pieceCache = {};
+        let particles = [];
 
-        // ---------- THEME LOADING WITH URL LOCK ----------
-        window.onload = function() { loadThemes(); };
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        const inputState = {
+            isPointerDown: false,
+            startX: 0,
+            startY: 0
+        };
+
+        // --- INITIALIZATION ---
+        window.onload = function() { 
+            loadThemes().then(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const roomId = urlParams.get('room');
+                if (roomId) joinPrivateGame(roomId);
+            });
+        };
 
         function loadThemes() {
-            fetch('assets/themes.json')
+            return fetch('assets/themes.json')
                 .then(r => {
                     if (!r.ok) throw new Error("Manifest not found");
                     return r.json();
@@ -392,482 +507,298 @@
                 .then(themes => {
                     const sel = document.getElementById('theme-select');
                     sel.innerHTML = '';
-                    if (themes.length === 0) {
-                        const opt = document.createElement('option');
-                        opt.text = "No themes found";
-                        sel.add(opt);
+                    
+                    if (!themes || themes.length === 0) {
+                        sel.add(new Option("No themes found", "", true, true));
                         return;
                     }
 
-                    themes.forEach(t => {
-                        const opt = document.createElement('option');
-                        opt.value = t;
-                        opt.text = t.replace(/_/g, ' ').toUpperCase();
-                        sel.add(opt);
-                    });
+                    const readyThemes = themes.filter(t => !IN_PROGRESS_THEMES.includes(t));
+                    const inProgressThemes = themes.filter(t => IN_PROGRESS_THEMES.includes(t));
+                    const pretty = (t) => t.replace(/_/g, ' ').toUpperCase();
 
-                const url = new URL(window.location.href);
-                const forcedTheme = url.searchParams.get('theme');
-                const forcedRoom  = url.searchParams.get('room');
-                const hostColor   = url.searchParams.get('hostColor');  // 'w' or 'b'
+                    // Ready Themes
+                    if (readyThemes.length > 0) {
+                        const grp = document.createElement('optgroup');
+                        grp.label = "READY TO PLAY";
+                        readyThemes.forEach(t => {
+                            grp.appendChild(new Option(pretty(t), t));
+                        });
+                        sel.add(grp);
+                    }
 
-                // JOINER: came in via room link
-                if (forcedRoom && forcedTheme && themes.includes(forcedTheme)) {
-                    // Lock theme
-                    sel.value = forcedTheme;
-                    sel.disabled = true;
-                
-                    // Force MULTIPLAYER mode
-                    GAME_MODE = 'pvp';
-                    const modeGroup = document.getElementById('mode-toggle-group');
-                    if (modeGroup) {
-                        const btns = modeGroup.querySelectorAll('.toggle-btn');
-                        btns.forEach(b => b.classList.remove('active'));
-                        // Second button is "Vs Friend (Online)"
-                        if (btns[1]) btns[1].classList.add('active');
-                        // Prevent changing mode
-                        modeGroup.style.pointerEvents = 'none';
+                    // In Progress Themes
+                    if (inProgressThemes.length > 0) {
+                        const grp = document.createElement('optgroup');
+                        grp.label = "UNDER DEVELOPMENT (WIP)";
+                        inProgressThemes.forEach(t => {
+                            grp.appendChild(new Option(`${pretty(t)} [WIP]`, t));
+                        });
+                        sel.add(grp);
                     }
-                
-                    // Force PLAYER COLOR to opposite of hostColor
-                    if (hostColor === 'w' || hostColor === 'b') {
-                        PLAYER_COLOR = (hostColor === 'w') ? 'b' : 'w';
-                        refreshColorToggleUI();
-                    
-                        const colorGroup = document.getElementById('color-toggle-group');
-                        if (colorGroup) {
-                            // Lock the color toggle so joiner can't flip to white
-                            colorGroup.style.pointerEvents = 'none';
-                        }
-                    }
-                } else {
-                    // Normal single-player / host behavior
-                    sel.disabled = false;
-                    sel.value = themes[themes.length - 1]; // default to last
-                    }
+
+                    sel.selectedIndex = 0;
+                    updateAvatarGrid(); 
                 })
                 .catch(e => {
-                    console.error("Theme Load Error:", e);
-                    const sel = document.getElementById('theme-select');
-                    sel.innerHTML = '<option disabled selected value="">Generate assets first!</option>';
+                    console.error(e);
+                    document.getElementById('theme-select').innerHTML = '<option>Run asset_generator.py first!</option>';
                 });
         }
 
-        // ---------- MODE / COLOR UI ----------
-        function setGameMode(mode) {
-            GAME_MODE = mode;
-            const modeGroup = document.getElementById('mode-toggle-group');
-            if (!modeGroup) return;
-            const btns = modeGroup.querySelectorAll('.toggle-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            if (mode === 'ai') {
-                btns[0].classList.add('active');
-                document.getElementById('share-link-wrapper').style.display = 'none';
-            } else {
-                btns[1].classList.add('active');
-            }
-        }
-
-        function refreshColorToggleUI() {
-            const group = document.getElementById('color-toggle-group');
-            if (!group) return;
-            const btns = group.querySelectorAll('.toggle-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            if (PLAYER_COLOR === 'w') btns[0].classList.add('active');
-            else btns[1].classList.add('active');
-        }
-
-        function setPlayerColor(c) {
-            PLAYER_COLOR = c;
-            refreshColorToggleUI();
-        }
-
-        // ---------- CHAT UI HELPERS ----------
-        function setChatVisible(visible) {
-            const panel = document.getElementById('chat-panel');
-            if (!panel) return;
-            panel.style.display = visible ? 'flex' : 'none';
-        }
-
-        function appendChatMessage(who, text) {
-            const box = document.getElementById('chat-messages');
-            if (!box) return;
-            const line = document.createElement('div');
-            line.innerHTML = `<span style="color:#4da6ff;">${who}:</span> <span>${text}</span>`;
-            box.appendChild(line);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            if (!input || !input.value.trim()) return;
-            const text = input.value.trim();
-            input.value = "";
-
-            appendChatMessage("You", text);
-
-            if (socket && socket.readyState === WebSocket.OPEN && GAME_MODE === 'pvp') {
-                socket.send(JSON.stringify({
-                    type: 'chat',
-                    roomId: ROOM_ID,
-                    name: PLAYER_NAME,
-                    text: text
-                }));
-            }
-        }
-
-        // Wire chat send + Enter key after DOM is loaded
-        window.addEventListener('load', () => {
-            const sendBtn = document.getElementById('chat-send-btn');
-            const chatInput = document.getElementById('chat-input');
-            if (sendBtn) sendBtn.onclick = sendChatMessage;
-            if (chatInput) {
-                chatInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        sendChatMessage();
-                    }
-                });
-            }
-        });
-
-        // Press T to focus chat in PvP
-        window.addEventListener('keydown', (e) => {
-            if ((e.key === 't' || e.key === 'T') && GAME_MODE === 'pvp') {
-                const panel = document.getElementById('chat-panel');
-                const input = document.getElementById('chat-input');
-                if (panel && input && panel.style.display !== 'none') {
-                    input.focus();
-                    e.preventDefault();
-                }
-            }
-        });
-
-        // ---------- COPY SHARE LINK ----------
-        function copyShareLink() {
-            const status = document.getElementById('copy-link-status');
-            const text = CURRENT_SHARE_LINK || (document.getElementById('share-link-input')?.value || "");
-        
-            if (!text) {
-                if (status) status.innerText = "No invite link yet.";
-                return;
-            }
-        
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text)
-                    .then(() => {
-                        if (status) {
-                            status.innerText = "Link copied!";
-                            setTimeout(() => { status.innerText = ""; }, 2000);
-                        }
-                    })
-                    .catch(() => fallbackCopy(text, status));
-            } else {
-                fallbackCopy(text, status);
-            }
-        }
-
-        function fallbackCopy(text, statusEl) {
-            const temp = document.createElement('textarea');
-            temp.value = text;
-            temp.style.position = "fixed";
-            temp.style.left = "-9999px";
-            document.body.appendChild(temp);
-            temp.select();
-            try { document.execCommand('copy'); } catch(e) {}
-            document.body.removeChild(temp);
-        
-            if (statusEl) {
-                statusEl.innerText = "Link copied!";
-                setTimeout(() => { statusEl.innerText = ""; }, 2000);
-            }
-        }
-
-
-        // ---------- GAME START ----------
-        function startGame() {
-            const sel = document.getElementById('theme-select');
-            const nameInput = document.getElementById('player-name-input');
+        // --- AVATAR & SETUP ---
+        function updateAvatarGrid() {
+            const theme = document.getElementById('theme-select').value;
+            const safeTheme = theme || 'medieval_classic'; 
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = '';
             
-            if (!sel.value || sel.value === "") {
-                alert("Please select a valid theme. If none appear, run asset_generator.py first!");
-                return;
-            }
+            const pieces = ['w_k', 'w_q', 'w_r', 'w_b', 'w_n', 'w_p', 'b_k', 'b_q', 'b_r', 'b_b', 'b_n', 'b_p'];
+            const map = {
+                'w_k': 'white_king', 'w_q': 'white_queen', 'w_r': 'white_rook', 'w_b': 'white_bishop', 'w_n': 'white_knight', 'w_p': 'white_pawn',
+                'b_k': 'black_king', 'b_q': 'black_queen', 'b_r': 'black_rook', 'b_b': 'black_bishop', 'b_n': 'black_knight', 'b_p': 'black_pawn'
+            };
 
+            pieces.forEach(code => {
+                const div = document.createElement('div');
+                div.className = `avatar-option ${code === selectedAvatar ? 'selected' : ''}`;
+                div.onclick = () => {
+                    selectedAvatar = code;
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                };
+                const img = document.createElement('img');
+                img.src = `assets/${safeTheme}/pieces/${map[code]}.png`;
+                img.onerror = function() { this.style.opacity = 0.3; }; 
+                div.appendChild(img);
+                grid.appendChild(div);
+            });
+        }
+
+        function setupGameCommon() {
+            const nameInput = document.getElementById('player-name-input');
+            const sel = document.getElementById('theme-select');
+            if(!sel.value) { alert("Please select a theme first"); return false; }
+            
             PLAYER_NAME = nameInput.value.trim() || "Commander";
-            document.getElementById('player-display').innerText = `COMMANDER: ${PLAYER_NAME.toUpperCase()}`;
-
             CURRENT_THEME = sel.value;
             ASSETS_PATH = `assets/${CURRENT_THEME}/`;
-            
             document.getElementById('start-menu').classList.remove('active');
             
+            // Set Camera Default
+            camera.position.set(0, 60, 80);
+            camera.lookAt(0,0,0);
+            return true;
+        }
+
+        function startGameAI() {
+            if(!setupGameCommon()) return;
+            initVisuals();
+            isMultiplayer = false;
+            isAIEnabled = true;
+            PLAYER_COLOR = 'w';
+            document.getElementById('player-display').innerText = `${PLAYER_NAME} VS AI (CPU)`;
+            updateStatus();
+        }
+
+        function startGameLocal() {
+            if(!setupGameCommon()) return;
+            initVisuals();
+            isMultiplayer = false;
+            isAIEnabled = false;
+            PLAYER_COLOR = 'w';
+            document.getElementById('player-display').innerText = `LOCAL PVP (HOTSEAT)`;
+            updateStatus();
+        }
+        
+        function initVisuals() {
+            game.reset();
+            // Clear pieces but keep lights
+            Object.values(piecesMap).forEach(mesh => scene.remove(mesh));
+            // Rebuild board and pieces
             buildSimpleBoard();
             initPieces();
-
-            const isMobile = window.innerWidth < 768;
-
-            // Initial camera orientation based on currently selected color
-            if (PLAYER_COLOR === 'w') { 
-                const zPos = isMobile ? 110 : 80;
-                const yPos = isMobile ? 80 : 60;
-                camera.position.set(0, yPos, zPos); 
-                camera.lookAt(0,0,0); 
-            } else { 
-                const zPos = isMobile ? -110 : -80;
-                const yPos = isMobile ? 80 : 60;
-                camera.position.set(0, yPos, zPos); 
-                camera.lookAt(0,0,0); 
-                controls.target.set(0,0,0); 
-            }
-
-            updateStatus();
-
-            if (GAME_MODE === 'pvp') {
-                setChatVisible(true);
-                setupMultiplayerRoom();
-            } else {
-                setChatVisible(false);
-                if (PLAYER_COLOR === 'b') setTimeout(makeAIMove, 1000);
-            }
         }
 
-        // ---------- MULTIPLAYER ----------
-        function setupMultiplayerRoom() {
-            const url = new URL(window.location.href);
-            const existingRoom = url.searchParams.get('room');
-
-            if (existingRoom) {
-                // JOINER
-                ROOM_ID = existingRoom;
-                IS_HOST = false;
-                document.getElementById('status').innerText = "Joining your friend's game...";
-                document.getElementById('share-link-wrapper').style.display = 'none';
-            } else {
-                // HOST
-                ROOM_ID = Math.random().toString(36).substring(2, 8).toUpperCase();
-                IS_HOST = true;
-
-                // IMPORTANT: use a COPY of the URL so we don't mutate the real page URL
-                const shareUrl = new URL(window.location.href);
-                shareUrl.searchParams.set('room', ROOM_ID);
-
-                // Include the CURRENT_THEME so joiner is locked to it
-                if (CURRENT_THEME) {
-                    shareUrl.searchParams.set('theme', CURRENT_THEME);
-                }
-
-                // Include the HOST'S COLOR so joiner can be forced to the opposite
-                // PLAYER_COLOR is whatever the host picked in the UI ("White" or "Black" button)
-                shareUrl.searchParams.set('hostColor', PLAYER_COLOR);  // 'w' or 'b'
-
-                const shareLink = shareUrl.toString();
-                CURRENT_SHARE_LINK = shareLink;
-
-                const shareInput = document.getElementById('share-link-input');
-                shareInput.value = shareLink;
-                document.getElementById('share-link-wrapper').style.display = 'block';
-
-                document.getElementById('status').innerText = "Share the link and waiting for your friend to join...";
-
-            }
-
-            initMultiplayerConnection();
-        }
-
-        function initMultiplayerConnection() {
-            if (!WS_URL || WS_URL.includes("YOUR-WEBSOCKET-ENDPOINT")) {
-                console.warn("WS_URL is not set. Multiplayer won't work until you configure it.");
-                document.getElementById('status').innerText = "Multiplayer not configured. Falling back to VS AI.";
-                GAME_MODE = 'ai';
-                document.getElementById('share-link-wrapper').style.display = 'none';
-                setChatVisible(false);
-                if (PLAYER_COLOR === 'b') setTimeout(makeAIMove, 1000);
-                return;
-            }
-
+        // --- MULTIPLAYER ---
+        function connectSocket() {
             socket = new WebSocket(WS_URL);
-
-            socket.onopen = () => {
-                socket.send(JSON.stringify({
-                    type: 'join',
-                    roomId: ROOM_ID,
-                    name: PLAYER_NAME
-                }));
-
-                if (IS_HOST) {
-                    joinTimeout = setTimeout(() => {
-                        alert("No one joined your room within 3 minutes. Switching to VS AI mode.");
-                        if (socket && socket.readyState === WebSocket.OPEN) {
-                            socket.close();
-                        }
-                        socket = null;
-                        GAME_MODE = 'ai';
-                        document.getElementById('share-link-wrapper').style.display = 'none';
-                        setChatVisible(false);
-                        document.getElementById('status').innerText = "No player joined. VS AI mode activated.";
-                        if (PLAYER_COLOR === 'b' && !game.game_over()) {
-                            setTimeout(makeAIMove, 1000);
-                        }
-                    }, JOIN_TIMEOUT_MS);
-                } else {
-                    document.getElementById('status').innerText = "Connected. Waiting for host to start...";
-                }
+            socket.onmessage = (e) => handleNetworkMessage(JSON.parse(e.data));
+            socket.onclose = () => { 
+                alert("Disconnected."); 
+                if (!window.isReloading) window.location.href = window.location.pathname; 
             };
-
-            socket.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-
-                if (msg.type === 'start') {
-                    if (joinTimeout) clearTimeout(joinTimeout);
-                
-                    // DO NOT override PLAYER_COLOR here.
-                    // Host keeps their chosen color.
-                    // Joiner already had PLAYER_COLOR set to opposite of hostColor in loadThemes().
-                    refreshColorToggleUI();
-                
-                    // Re-orient camera based on the already-decided PLAYER_COLOR
-                    const isMobile = window.innerWidth < 768;
-                    if (PLAYER_COLOR === 'w') {
-                        const zPos = isMobile ? 110 : 80;
-                        const yPos = isMobile ? 80 : 60;
-                        camera.position.set(0, yPos, zPos);
-                        camera.lookAt(0,0,0);
-                    } else {
-                        const zPos = isMobile ? -110 : -80;
-                        const yPos = isMobile ? 80 : 60;
-                        camera.position.set(0, yPos, zPos);
-                        camera.lookAt(0,0,0);
-                        controls.target.set(0,0,0);
-                    }
-                
-                    document.getElementById('status').innerText =
-                        "Game started! " + (game.turn() === 'w' ? 'White' : 'Black') + " to move.";
-
-                } else if (msg.type === 'move') {
-                    const move = msg.move;
-                    game.move(move);
-                    handleMoveVisuals(move, () => {
-                        updateStatus();
-                    });
-
-                } else if (msg.type === 'chat') {
-                    if (msg.name && msg.text) {
-                        appendChatMessage(msg.name, msg.text);
-                    }
-
-                } else if (msg.type === 'error') {
-                    alert(msg.message || "Multiplayer error");
-                    document.getElementById('status').innerText = "Multiplayer error.";
-                }
-            };
-
-            socket.onclose = () => {
-                if (!game.game_over() && GAME_MODE === 'pvp') {
-                    document.getElementById('status').innerText = "Connection lost.";
-                }
-            };
-
-            socket.onerror = (err) => {
-                console.error("WebSocket error", err);
-                if (GAME_MODE === 'pvp') {
-                    document.getElementById('status').innerText = "WebSocket error.";
-                }
-            };
+            return socket;
         }
 
-        // ---------- BOARD & PIECES ----------
+        function joinLobby() {
+            if(!setupGameCommon()) return;
+            document.getElementById('lobby-menu').classList.add('active');
+            updateMyAvatarDisplay();
+            isMultiplayer = true;
+            isAIEnabled = false;
+            const ws = connectSocket();
+            ws.onopen = () => ws.send(JSON.stringify({ type: 'login', name: PLAYER_NAME, avatar: selectedAvatar }));
+        }
+
+        function createPrivateGame() {
+            if(!setupGameCommon()) return;
+            document.getElementById('invite-menu').classList.add('active');
+            isMultiplayer = true;
+            isAIEnabled = false;
+            const ws = connectSocket();
+            ws.onopen = () => ws.send(JSON.stringify({ type: 'create_private', name: PLAYER_NAME, avatar: selectedAvatar }));
+        }
+
+        function joinPrivateGame(roomId) {
+            const sel = document.getElementById('theme-select');
+            if(!sel.value && sel.options.length > 0) sel.selectedIndex = 0;
+            setupGameCommon();
+            isMultiplayer = true;
+            isAIEnabled = false;
+            const ws = connectSocket();
+            ws.onopen = () => ws.send(JSON.stringify({ type: 'join_private', roomId: roomId, name: PLAYER_NAME, avatar: selectedAvatar }));
+        }
+
+        function disconnectSocket() {
+            if(socket) { window.isReloading = true; socket.close(); }
+            window.location.href = window.location.pathname;
+        }
+        
+        function updateMyAvatarDisplay() {
+            const fullMap = { 'w_k': 'white_king', 'w_q': 'white_queen', 'b_k': 'black_king', 'b_q': 'black_queen' }; // simplified map for lobby
+            const pieceName = fullMap[selectedAvatar] || 'white_king';
+            document.getElementById('my-avatar-display').src = `${ASSETS_PATH}pieces/${pieceName}.png`;
+            document.getElementById('my-name-display').innerText = PLAYER_NAME;
+        }
+
+        function handleNetworkMessage(msg) {
+            if (msg.type === 'login_success') myClientId = msg.myId;
+            if (msg.type === 'lobby_update') renderLobbyList(msg.players);
+            if (msg.type === 'private_created') {
+                const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?room=${msg.roomId}`;
+                document.getElementById('invite-link-box').value = link;
+            }
+            if (msg.type === 'challenge_received') {
+                pendingChallengeId = msg.fromId;
+                document.getElementById('challenger-name').innerText = `${msg.fromName} wants to battle!`;
+                document.getElementById('challenge-modal').classList.add('active');
+            }
+            if (msg.type === 'error') { alert(msg.message); disconnectSocket(); }
+            if (msg.type === 'game_start') {
+                document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+                currentRoomId = msg.roomId;
+                PLAYER_COLOR = msg.color;
+                document.getElementById('player-display').innerText = `VS ${msg.opponent}`;
+                initVisuals();
+                const isMobile = window.innerWidth < 768;
+                const z = (PLAYER_COLOR === 'w') ? (isMobile ? 110 : 80) : (isMobile ? -110 : -80);
+                camera.position.set(0, isMobile ? 80 : 60, z);
+                camera.lookAt(0,0,0);
+                updateStatus();
+            }
+            if (msg.type === 'move') executeMove(msg.move, true);
+            if (msg.type === 'opponent_disconnected') {
+                alert("Opponent disconnected!");
+                triggerGameOver("Opponent Disconnected");
+            }
+        }
+
+        function renderLobbyList(players) {
+            const list = document.getElementById('lobby-list');
+            list.innerHTML = '';
+            const opponents = players.filter(p => p.id !== myClientId);
+            if (opponents.length === 0) { list.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Waiting for players...</li>'; return; }
+            opponents.forEach(p => {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+                const avatarUrl = `assets/${CURRENT_THEME}/pieces/white_king.png`; // Fallback visual
+                li.innerHTML = `
+                    <div class="player-info"><img src="${avatarUrl}" style="width:30px;"><div><div style="font-weight:bold; color:#fff;">${p.name}</div><span class="player-stats">W:${p.stats.wins} L:${p.stats.losses}</span></div></div>
+                    <button class="challenge-btn" onclick="sendChallenge('${p.id}')">FIGHT</button>`;
+                list.appendChild(li);
+            });
+        }
+
+        function sendChallenge(targetId) { socket.send(JSON.stringify({ type: 'challenge_request', targetId })); alert("Challenge sent!"); }
+        function acceptChallenge() { socket.send(JSON.stringify({ type: 'challenge_accept', targetId: pendingChallengeId })); }
+        function declineChallenge() { document.getElementById('challenge-modal').classList.remove('active'); pendingChallengeId = null; }
+
+        // --- GAMEPLAY VISUALS ---
         function buildSimpleBoard() {
             const boardTexture = textureLoader.load(ASSETS_PATH + 'board_texture.png', (tex) => { tex.encoding = THREE.sRGBEncoding; });
             const boardGeo = new THREE.BoxGeometry(84, 1, 84);
-            const boardMat = new THREE.MeshStandardMaterial({ map: boardTexture, color: 0xffffff });
+            const boardMat = new THREE.MeshStandardMaterial({ 
+                map: boardTexture, 
+                color: 0xdddddd, // offwhite
+                roughness: 0.35, // adds some matte so it doesn’t blow out
+                metalness: 0.1
+            });
             const board = new THREE.Mesh(boardGeo, boardMat);
             board.position.y = -0.5;
             board.receiveShadow = true;
             scene.add(board);
         }
 
-        function squareToVector(square) {
-            const file = square.charCodeAt(0) - 97;
-            const rank = 8 - parseInt(square[1]);  
-            const x = (file * BOARD_SQUARE_SIZE) - BOARD_OFFSET;
-            const z = (rank * BOARD_SQUARE_SIZE) - BOARD_OFFSET;
-            return new THREE.Vector3(x, 5.5, z);
-        }
-
-        function getFullName(type, color) {
-            const names = { 'p': 'pawn', 'n': 'knight', 'b': 'bishop', 'r': 'rook', 'q': 'queen', 'k': 'king' };
-            const c = color === 'w' ? 'white' : 'black';
-            return `${c}_${names[type]}`;
-        }
-
-        function loadChromaTexture(name, path, color) {
-            if (pieceCache[name]) return pieceCache[name];
-            const tex = new THREE.Texture();
-            const img = new Image();
-            img.src = path;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width; canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const d = idata.data;
-                for (let i = 0; i < d.length; i += 4) {
-                    const r = d[i], g = d[i+1], b = d[i+2];
-                    if (color === 'w') {
-                        if (r < 40 && g < 40 && b < 40) d[i+3] = 0;
-                    } else {
-                        if (r > 215 && g > 215 && b > 215) d[i+3] = 0;
-                    }
-                }
-                ctx.putImageData(idata, 0, 0);
-                tex.image = canvas;
-                tex.needsUpdate = true;
-                tex.encoding = THREE.sRGBEncoding;
-            };
-            pieceCache[name] = tex;
-            return tex;
-        }
-
-        function getTransparentIconUrl(path, color, callback) {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            img.src = path;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width; canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const d = idata.data;
-                for (let i = 0; i < d.length; i += 4) {
-                    const r = d[i], g = d[i+1], b = d[i+2];
-                    if (color === 'w') {
-                        if (r < 40 && g < 40 && b < 40) d[i+3] = 0;
-                    } else {
-                        if (r > 215 && g > 215 && b > 215) d[i+3] = 0;
-                    }
-                }
-                ctx.putImageData(idata, 0, 0);
-                callback(canvas.toDataURL());
-            };
-        }
-
         function spawnPiece(type, color, square) {
             const fname = getFullName(type, color);
             const path = `${ASSETS_PATH}pieces/${fname}.png`;
+            
+            // RESTORED: Chroma Key Texture Loading (Removes Black/White Squares)
             const texture = loadChromaTexture(fname, path, color);
-            const geometry = new THREE.PlaneGeometry(11.5, 11.5);
-            const material = new THREE.MeshBasicMaterial({ 
-                map: texture, transparent: true, side: THREE.DoubleSide, depthWrite: false 
+            const material = new THREE.MeshStandardMaterial({ 
+                map: texture, 
+                transparent: true, 
+                side: THREE.DoubleSide,
+                alphaTest: 0.5,
+                roughness: 0.55,   // a bit more matte
+                metalness: 0.1
             });
+            
+            const geometry = new THREE.PlaneGeometry(11.5, 11.5);
             const mesh = new THREE.Mesh(geometry, material);
             const pos = squareToVector(square);
+            
+            // Always face camera but keep upright
             mesh.position.set(pos.x, pos.y, pos.z);
+            mesh.rotation.x = 0; // Vertical
+            mesh.customDepthMaterial = new THREE.MeshDepthMaterial({
+                depthPacking: THREE.RGBADepthPacking,
+                map: texture,
+                alphaTest: 0.5
+            });
+            
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            
             mesh.userData = { type: type, color: color, square: square };
             scene.add(mesh);
             piecesMap[square] = mesh;
+        }
+
+        function spawnParticles(pos, color) {
+            const geometry = new THREE.BufferGeometry();
+            const count = 50;
+            const positions = new Float32Array(count * 3);
+            const velocities = [];
+            
+            for(let i=0; i<count; i++) {
+                positions[i*3] = pos.x;
+                positions[i*3+1] = pos.y;
+                positions[i*3+2] = pos.z;
+                velocities.push({
+                    x: (Math.random()-0.5) * 1.5,
+                    y: (Math.random()) * 1.5,
+                    z: (Math.random()-0.5) * 1.5
+                });
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const material = new THREE.PointsMaterial({ size: 0.8, color: color === 'w' ? 0xffffff : 0xff0000, transparent: true, opacity: 1 });
+            const pts = new THREE.Points(geometry, material);
+            scene.add(pts);
+            
+            particles.push({ mesh: pts, vels: velocities, life: 1.0 });
         }
 
         function initPieces() {
@@ -880,73 +811,28 @@
             }
         }
 
-        function updateCaptures(capturedPiece, capturerColor) {
-            const fullPieceName = getFullName(capturedPiece, capturerColor === 'w' ? 'b' : 'w');
-            const iconPath = `${ASSETS_PATH}pieces/${fullPieceName}.png`;
-            const pieceColor = capturerColor === 'w' ? 'b' : 'w';
-            
-            getTransparentIconUrl(iconPath, pieceColor, (dataUrl) => {
-                const img = document.createElement('img');
-                img.src = dataUrl;
-                img.className = 'capture-icon';
-                const containerId = capturerColor === 'w' ? 'tracker-w' : 'tracker-b';
-                document.getElementById(containerId).appendChild(img);
-            });
-        }
-
-        // --- UNIFIED INPUT HANDLING (MOUSE + TOUCH + PEN) ---
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        const inputState = {
-            isPointerDown: false,
-            startX: 0,
-            startY: 0
-        };
-
-        renderer.domElement.addEventListener('pointerdown', (e) => {
-            // Only react to primary button / touch
-            if (e.button !== undefined && e.button !== 0) return;
-            inputState.isPointerDown = true;
-            inputState.startX = e.clientX;
-            inputState.startY = e.clientY;
-        });
-
-        renderer.domElement.addEventListener('pointerup', (e) => {
-            if (!inputState.isPointerDown) return;
-            inputState.isPointerDown = false;
-
-            const dx = e.clientX - inputState.startX;
-            const dy = e.clientY - inputState.startY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            const threshold = (e.pointerType === 'touch') ? 12 : 5;
-
-            if (dist < threshold) {
-                onInteraction(e.clientX, e.clientY);
-            }
-        });
-
+        // --- CORE GAMEPLAY ---
         function onInteraction(clientX, clientY) {
-            if (document.getElementById('battle-overlay').style.display === 'flex') return;
-            if (isAIThinking || game.game_over() || game.turn() !== PLAYER_COLOR) return;
+            if(document.getElementById('battle-overlay').style.display === 'flex') return;
+            if((isAIEnabled || isMultiplayer) && game.turn() !== PLAYER_COLOR) return;
 
             mouse.x = (clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-            
             raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(scene.children);
+            // Mouse Light logic
+            if(intersects.length > 0) {
+                const pt = intersects[0].point;
+                mouseLight.position.set(pt.x, 8, pt.z); // Update light Y if needed
+            }
 
             const pieceIntersects = raycaster.intersectObjects(Object.values(piecesMap));
             if (pieceIntersects.length > 0) {
                 const mesh = pieceIntersects[0].object;
                 const square = mesh.userData.square;
-                if (game.get(square).color === PLAYER_COLOR) {
-                    selectPiece(square);
-                    return;
-                } else if (selectedSquare) {
-                    attemptMove(square);
-                    return;
-                }
+                if (game.get(square).color === game.turn()) { selectPiece(square); return; }
+                else if (selectedSquare) { attemptMove(square); return; }
             }
 
             const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -956,26 +842,109 @@
                 const fileIdx = Math.floor((target.x + BOARD_OFFSET + BOARD_SQUARE_SIZE/2) / BOARD_SQUARE_SIZE);
                 const rankIdx = Math.floor((target.z + BOARD_OFFSET + BOARD_SQUARE_SIZE/2) / BOARD_SQUARE_SIZE);
                 if (fileIdx >= 0 && fileIdx < 8 && rankIdx >= 0 && rankIdx < 8) {
-                    const file = String.fromCharCode(97 + fileIdx);
-                    const rank = 8 - rankIdx;
-                    attemptMove(file + rank);
+                    attemptMove(String.fromCharCode(97 + fileIdx) + (8 - rankIdx));
                 }
             }
         }
 
+        // --- LIGHTING UI HOOKUP ---
+        function setupLightingUI() {
+            const toggleEl = document.getElementById('lighting-toggle');
+            const panelEl  = document.getElementById('lighting-panel');
+        
+            toggleEl.addEventListener('click', () => {
+                panelEl.classList.toggle('hidden');
+            });
+        
+            // Helper to wire a slider
+            function bindSlider(sliderId, labelId, getVal, setVal, decimals = 2) {
+                const slider = document.getElementById(sliderId);
+                const label  = document.getElementById(labelId);
+                if (!slider || !label) return;
+            
+                // initial
+                slider.value = getVal().toFixed(decimals);
+                label.textContent = getVal().toFixed(decimals);
+            
+                slider.addEventListener('input', () => {
+                    const v = parseFloat(slider.value);
+                    setVal(v);
+                    label.textContent = v.toFixed(decimals);
+                });
+            }
+        
+            bindSlider(
+                'slider-exposure',
+                'val-exposure',
+                () => renderer.toneMappingExposure,
+                v  => renderer.toneMappingExposure = v
+            );
+        
+            bindSlider(
+                'slider-spot',
+                'val-spot',
+                () => spotLight.intensity,
+                v  => spotLight.intensity = v
+            );
+        
+            bindSlider(
+                'slider-ambient',
+                'val-ambient',
+                () => ambientLight.intensity,
+                v  => ambientLight.intensity = v
+            );
+        
+            bindSlider(
+                'slider-mouse',
+                'val-mouse',
+                () => mouseLight.intensity,
+                v  => mouseLight.intensity = v
+            );
+        
+            bindSlider(
+                'slider-bloom',
+                'val-bloom',
+                () => bloomPass.strength,
+                v  => bloomPass.strength = v
+            );
+        }
+        
+        // Make sure this runs once DOM + lights are ready
+        window.addEventListener('load', setupLightingUI);
+
+        // Interaction Listeners
+        renderer.domElement.addEventListener('pointerdown', (e) => { if(e.button===0){ inputState.isPointerDown=true; inputState.startX=e.clientX; inputState.startY=e.clientY; } });
+        renderer.domElement.addEventListener('pointerup', (e) => { 
+            if(!inputState.isPointerDown) return; 
+            inputState.isPointerDown=false; 
+            if(Math.sqrt(Math.pow(e.clientX-inputState.startX,2)+Math.pow(e.clientY-inputState.startY,2))<10) onInteraction(e.clientX, e.clientY);
+        });
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            // Update light pos passively
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+            if(intersects.length > 0) {
+                const pt = intersects[0].point;
+                // Move light smoothly
+                new TWEEN.Tween(mouseLight.position).to({ x: pt.x, z: pt.z }, 50).start();
+            }
+        });
+
+        // --- MOVEMENT LOGIC (Condensed for stability) ---
         function selectPiece(square) {
-            if (selectedMesh) selectedMesh.material.color.setHex(0xffffff);
+            if (selectedMesh) selectedMesh.material.emissive.setHex(0x000000);
             selectedSquare = square;
             selectedMesh = piecesMap[square];
-            if (selectedMesh) selectedMesh.material.color.setHex(0x00ff00);
+            if (selectedMesh) selectedMesh.material.emissive.setHex(0x333333); // Subtle glow
         }
 
         function attemptMove(targetSquare) {
             const piece = game.get(selectedSquare);
             if (piece.type === 'p' && (targetSquare[1] === '8' || targetSquare[1] === '1')) {
                 const tempMove = new Chess(game.fen());
-                const valid = tempMove.move({from:selectedSquare, to:targetSquare, promotion:'q'});
-                if (valid) {
+                if(tempMove.move({from:selectedSquare, to:targetSquare, promotion:'q'})) {
                     pendingPromotionMove = { from: selectedSquare, to: targetSquare };
                     document.getElementById('promo-modal').classList.add('active');
                     return;
@@ -984,48 +953,28 @@
             executeMove({ from: selectedSquare, to: targetSquare, promotion: 'q' });
         }
 
-        function commitPromotion(promotionPiece) {
+        function commitPromotion(p) {
             document.getElementById('promo-modal').classList.remove('active');
-            if (pendingPromotionMove) {
-                executeMove({ 
-                    from: pendingPromotionMove.from, 
-                    to: pendingPromotionMove.to, 
-                    promotion: promotionPiece 
-                });
-                pendingPromotionMove = null;
-            }
+            if(pendingPromotionMove) { executeMove({ ...pendingPromotionMove, promotion: p }); pendingPromotionMove=null; }
         }
 
-        function executeMove(moveObj) {
-            const move = game.move(moveObj);
+        function executeMove(moveObj, isNetworkMove = false) {
+            let move = isNetworkMove ? game.move(moveObj) : game.move(moveObj);
             if (move) {
-                if (selectedMesh) selectedMesh.material.color.setHex(0xffffff);
-                selectedSquare = null;
-                selectedMesh = null;
+                if(selectedMesh) selectedMesh.material.emissive.setHex(0x000000);
+                selectedSquare = null; selectedMesh = null;
+                if (isMultiplayer && !isNetworkMove && socket) socket.send(JSON.stringify({ type: 'move', roomId: currentRoomId, move: moveObj }));
                 
                 handleMoveVisuals(move, () => {
                     updateStatus();
-
-                    if (game.in_checkmate() || game.in_draw()) {
-                        if (game.in_checkmate()) playCheckmateAnimation(move);
-                        else triggerGameOver();
-                        return;
-                    }
-
-                    if (GAME_MODE === 'ai') {
-                        if (!game.game_over()) {
-                            isAIThinking = true;
-                            document.getElementById('status').innerText = "AI is thinking...";
-                            setTimeout(makeAIMove, 800);
-                        }
-                    } else if (GAME_MODE === 'pvp') {
-                        if (socket && socket.readyState === WebSocket.OPEN) {
-                            socket.send(JSON.stringify({
-                                type: 'move',
-                                roomId: ROOM_ID,
-                                move: move
-                            }));
-                        }
+                    if (game.game_over()) {
+                        if (game.in_checkmate()) {
+                            playCheckmateAnimation(move);
+                            if(isMultiplayer && !isNetworkMove && socket) socket.send(JSON.stringify({ type: 'game_over', winnerName: game.turn()==='w'?'Black':'White', loserName: game.turn()==='w'?'White':'Black' }));
+                        } else triggerGameOver(game.in_draw()?"Draw":"Game Over");
+                    } else if (isAIEnabled && game.turn() !== PLAYER_COLOR) {
+                        isAIThinking = true; document.getElementById('status').innerText = "AI thinking...";
+                        setTimeout(makeAIMove, 800);
                     }
                 });
             }
@@ -1034,22 +983,10 @@
         function makeAIMove() {
             const moves = game.moves({ verbose: true });
             if (moves.length === 0) return;
-            
-            let bestMove = moves[Math.floor(Math.random() * moves.length)];
-            const captures = moves.filter(m => m.captured);
-            if (captures.length > 0) bestMove = captures[Math.floor(Math.random() * captures.length)];
-            
-            if (bestMove.promotion) bestMove.promotion = 'q';
-
+            let bestMove = moves.find(m => m.captured) || moves[Math.floor(Math.random() * moves.length)];
+            if(bestMove.promotion) bestMove.promotion = 'q';
             game.move(bestMove);
-            handleMoveVisuals(bestMove, () => {
-                isAIThinking = false;
-                updateStatus();
-                if (game.in_checkmate() || game.in_draw()) {
-                    if (game.in_checkmate()) playCheckmateAnimation(bestMove);
-                    else triggerGameOver();
-                }
-            });
+            handleMoveVisuals(bestMove, () => { isAIThinking=false; updateStatus(); if(game.game_over()) triggerGameOver(); });
         }
 
         function handleMoveVisuals(move, onComplete) {
@@ -1060,196 +997,149 @@
 
             if (move.captured) {
                 updateCaptures(move.captured, move.color);
+                // Particle Explosion!
+                const victim = piecesMap[destSquare];
+                if(victim) spawnParticles(victim.position, move.color === 'w' ? 'b' : 'w'); // Opponent color explodes
             }
 
-            if (move.flags && (move.flags.includes('k') || move.flags.includes('q'))) {
-                let rookSrc, rookDst;
-                if (move.color === 'w') {
-                    rookSrc = move.flags.includes('k') ? 'h1' : 'a1';
-                    rookDst = move.flags.includes('k') ? 'f1' : 'd1';
-                } else {
-                    rookSrc = move.flags.includes('k') ? 'h8' : 'a8';
-                    rookDst = move.flags.includes('k') ? 'f8' : 'd8';
-                }
-                const rookMesh = piecesMap[rookSrc];
-                const rookPos = squareToVector(rookDst);
-                finishMove(rookMesh, rookPos, rookSrc, rookDst, null);
+            if (move.flags.includes('k') || move.flags.includes('q')) { // Castling
+                let rookSrc = move.color==='w'?(move.flags.includes('k')?'h1':'a1'):(move.flags.includes('k')?'h8':'a8');
+                let rookDst = move.color==='w'?(move.flags.includes('k')?'f1':'d1'):(move.flags.includes('k')?'f8':'d8');
+                finishMove(piecesMap[rookSrc], squareToVector(rookDst), rookSrc, rookDst, null);
             }
 
-            if (move.captured) {
+            // Normal or Capture Move
+            if(move.captured) {
                 playKillVideo(move, () => {
                     const victimMesh = piecesMap[destSquare];
-                    if (victimMesh) scene.remove(victimMesh);
-                    if (move.promotion) {
-                        scene.remove(pieceMesh);
-                        spawnPiece(move.promotion, move.color, originSquare);
-                        const newMesh = piecesMap[originSquare];
-                        finishMove(newMesh, targetPos, originSquare, destSquare, onComplete);
-                    } else {
-                        finishMove(pieceMesh, targetPos, originSquare, destSquare, onComplete);
-                    }
+                    if(victimMesh) scene.remove(victimMesh);
+                    if(move.promotion) {
+                        scene.remove(pieceMesh); spawnPiece(move.promotion, move.color, originSquare);
+                        finishMove(piecesMap[originSquare], targetPos, originSquare, destSquare, onComplete);
+                    } else finishMove(pieceMesh, targetPos, originSquare, destSquare, onComplete);
                 });
             } else {
-                if (move.promotion) {
-                    scene.remove(pieceMesh);
-                    spawnPiece(move.promotion, move.color, originSquare);
-                    const newMesh = piecesMap[originSquare];
-                    finishMove(newMesh, targetPos, originSquare, destSquare, onComplete);
-                } else {
-                    finishMove(pieceMesh, targetPos, originSquare, destSquare, onComplete);
-                }
+                if(move.promotion) { scene.remove(pieceMesh); spawnPiece(move.promotion, move.color, originSquare); finishMove(piecesMap[originSquare], targetPos, originSquare, destSquare, onComplete); }
+                else finishMove(pieceMesh, targetPos, originSquare, destSquare, onComplete);
             }
         }
 
         function finishMove(mesh, targetPos, oldSquare, newSquare, onComplete) {
-            new TWEEN.Tween(mesh.position)
-                .to({ x: targetPos.x, z: targetPos.z }, 400)
-                .easing(TWEEN.Easing.Quadratic.Out)
-                .onComplete(() => { if (onComplete) onComplete(); })
-                .start();
+            // Jump animation
+            new TWEEN.Tween(mesh.position).to({ x: targetPos.x, z: targetPos.z }, 400).easing(TWEEN.Easing.Quadratic.Out).onComplete(() => { if(onComplete) onComplete(); }).start();
+            // Small hop
+            new TWEEN.Tween(mesh.position).to({ y: 5 }, 200).yoyo(true).repeat(1).start();
+            
             delete piecesMap[oldSquare];
             piecesMap[newSquare] = mesh;
             mesh.userData.square = newSquare;
         }
 
-        function updateStatus() {
-            let status = '';
-            let moveColor = game.turn() === 'w' ? 'White' : 'Black';
-            const statEl = document.getElementById('status');
-            const alertEl = document.getElementById('check-alert');
-            
-            statEl.classList.remove('check');
-            alertEl.style.display = 'none';
-            
-            const board = game.board();
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const p = board[r][c];
-                    const sq = String.fromCharCode(97 + c) + (8 - r);
-                    if (piecesMap[sq]) piecesMap[sq].material.color.setHex(0xffffff);
-                }
-            }
-
-            if (game.in_check()) {
-                statEl.classList.add('check');
-                alertEl.style.display = 'block';
-                setTimeout(() => { alertEl.style.display = 'none'; }, 2500);
+        // --- UTILS ---
+        function squareToVector(sq) { return new THREE.Vector3((sq.charCodeAt(0)-97)*10 - 35, 5.5, (8-parseInt(sq[1]))*10 - 35); }
+        function getFullName(type, color) { return `${color==='w'?'white':'black'}_${{'p':'pawn','n':'knight','b':'bishop','r':'rook','q':'queen','k':'king'}[type]}`; }
+        
+        // RESTORED: Chroma Key Texture Loading (Removes Black/White Squares)
+        function loadChromaTexture(name, path, color) {
+            if(pieceCache[name]) return pieceCache[name];
+            const tex = new THREE.Texture(); 
+            const img = new Image(); 
+            img.src = path;
+            img.onload = () => {
+                const canvas = document.createElement('canvas'); 
+                canvas.width = img.width; 
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d'); 
+                ctx.drawImage(img, 0, 0);
                 
-                const turn = game.turn();
-                for (let r = 0; r < 8; r++) {
-                    for (let c = 0; c < 8; c++) {
-                        const p = board[r][c];
-                        if (p && p.type === 'k' && p.color === turn) {
-                            const sq = String.fromCharCode(97 + c) + (8 - r);
-                            if (piecesMap[sq]) piecesMap[sq].material.color.setHex(0xff0000);
-                        }
+                const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const d = idata.data;
+                // Manual Chroma Key to make background transparent
+                for(let i=0; i<d.length; i+=4) {
+                    const r=d[i], g=d[i+1], b=d[i+2];
+                    if (color === 'w') { 
+                        if(r < 40 && g < 40 && b < 40) d[i+3] = 0; // Remove Black
+                    } else { 
+                        if(r > 215 && g > 215 && b > 215) d[i+3] = 0; // Remove White
                     }
                 }
-            }
-
-            if (game.in_checkmate()) {
-                status = 'CHECKMATE! ' + (moveColor==='White'?'Black':'White') + ' WINS!';
-            } else if (game.in_draw()) {
-                status = 'Game over, drawn position';
-            } else {
-                status = moveColor + ' to move';
-                if (game.in_check()) status += ' (CHECK!)';
-            }
-            statEl.innerText = status;
+                ctx.putImageData(idata, 0, 0);
+                
+                tex.image = canvas; 
+                tex.needsUpdate = true; 
+                tex.encoding = THREE.sRGBEncoding;
+            };
+            pieceCache[name] = tex; 
+            return tex;
         }
 
-        function triggerGameOver() {
-            let reason = "Game Over";
-            if (game.in_checkmate()) {
-                const winner = game.turn() === 'w' ? "BLACK" : "WHITE";
-                reason = `CHECKMATE - ${winner} WINS!`;
-            } else if (game.in_draw()) {
-                reason = "DRAW (Stalemate / Insufficient Material)";
+        function getTransparentIconUrl(path, color, cb) { const img=new Image(); img.crossOrigin="Anonymous"; img.src=path; img.onload=()=>{ const c=document.createElement('canvas'); c.width=img.width; c.height=img.height; c.getContext('2d').drawImage(img,0,0); cb(c.toDataURL()); }; }
+        function updateCaptures(p, c) { const n = getFullName(p, c==='w'?'b':'w'); getTransparentIconUrl(`${ASSETS_PATH}pieces/${n}.png`, c, (u)=>{ const i=document.createElement('img'); i.src=u; i.className='capture-icon'; document.getElementById(c==='w'?'tracker-w':'tracker-b').appendChild(i); }); }
+        
+        function updateStatus() {
+            let st = ''; let c = game.turn()==='w'?'White':'Black';
+            Object.values(piecesMap).forEach(p => p.material.emissive.setHex(0x000000));
+            document.getElementById('check-alert').style.display='none';
+            if(game.in_check()) {
+                document.getElementById('check-alert').style.display='block'; setTimeout(()=>document.getElementById('check-alert').style.display='none',2500);
+                // Highlight King
+                const k = Object.values(piecesMap).find(m => m.userData.type === 'k' && m.userData.color === game.turn());
+                if(k) k.material.emissive.setHex(0xff0000);
             }
-            
-            document.getElementById('end-title').innerText = reason;
-            document.getElementById('end-reason').innerText = `Well fought, ${PLAYER_NAME}.`;
-            
-            setTimeout(() => {
-                document.getElementById('game-over-modal').classList.add('active');
-            }, 1000);
+            if(game.in_checkmate()) st=`CHECKMATE! ${c==='White'?'Black':'White'} WINS!`;
+            else if(game.in_draw()) st='DRAW';
+            else st = `${c} to move`;
+            document.getElementById('status').innerText = st;
         }
 
-        // ---------- VIDEO / ANIMATIONS ----------
-        const overlay = document.getElementById('battle-overlay');
+        function triggerGameOver(r) { document.getElementById('end-title').innerText = r || "GAME OVER"; setTimeout(()=>document.getElementById('game-over-modal').classList.add('active'), 1000); }
+
+        // --- VIDEO ---
         const vid = document.getElementById('battle-video');
-        const msg = document.getElementById('video-msg');
-        const skip = document.getElementById('skip-btn');
+        const overlay = document.getElementById('battle-overlay');
         let onVideoEnd = null;
-
-        skip.onclick = stopVideo;
-
-        function playKillVideo(move, callback) {
-            const attackerColor = move.color === 'w' ? 'white' : 'black';
-            const victimColor = move.color === 'w' ? 'black' : 'white';
-            const attackerPiece = getFullName(move.piece, move.color).split('_')[1];
-            const victimPiece = getFullName(move.captured, move.color === 'w' ? 'b' : 'w').split('_')[1];
-            
-            const filename = `${attackerColor}_${attackerPiece}_takes_${victimColor}_${victimPiece}.mp4`;
-            playVideoFile(filename, callback);
+        document.getElementById('skip-btn').onclick = stopVideo;
+        function playKillVideo(move, cb) { playVideoFile(`${move.color==='w'?'white':'black'}_${getFullName(move.piece,move.color).split('_')[1]}_takes_${move.color==='w'?'black':'white'}_${getFullName(move.captured,move.color==='w'?'b':'w').split('_')[1]}.mp4`, cb); }
+        function playCheckmateAnimation(move) { playVideoFile(`${move.color==='w'?'white':'black'}_${getFullName(move.piece,move.color).split('_')[1]}_takes_${move.color==='w'?'black':'white'}_king.mp4`, ()=>triggerGameOver()); }
+        function playVideoFile(f, cb) { 
+            onVideoEnd=cb; const p=`${ASSETS_PATH}videos/${f}`; document.getElementById('video-msg').innerText=`Loading: ${f}`; vid.src=p; overlay.style.display='flex';
+            vid.play().then(()=>{ document.getElementById('video-msg').innerText=""; }).catch(()=>{ setTimeout(stopVideo,1000); }); vid.onended=stopVideo;
         }
+        function stopVideo() { vid.pause(); overlay.style.display='none'; if(onVideoEnd){ onVideoEnd(); onVideoEnd=null; } }
 
-        function playCheckmateAnimation(move) {
-            const attackerColor = move.color === 'w' ? 'white' : 'black';
-            const victimColor = move.color === 'w' ? 'black' : 'white';
-            const attackerPiece = getFullName(move.piece, move.color).split('_')[1];
-            const filename = `${attackerColor}_${attackerPiece}_takes_${victimColor}_king.mp4`;
-            
-            playVideoFile(filename, () => {
-                triggerGameOver();
-            });
-        }
-
-        function playVideoFile(filename, callback) {
-            onVideoEnd = callback;
-            const fullPath = `${ASSETS_PATH}videos/${filename}`;
-
-            msg.innerText = `Loading: ${filename}`;
-            vid.src = fullPath;
-            overlay.style.display = 'flex';
-            
-            vid.play().then(() => {
-                msg.innerText = "";
-            }).catch(e => {
-                msg.innerText = `VIDEO MISSING: ${filename}\n(Skipping in 1s...)`;
-                setTimeout(stopVideo, 1000);
-            });
-
-            vid.onended = stopVideo;
-        }
-
-        function stopVideo() {
-            vid.pause();
-            overlay.style.display = 'none';
-            if (onVideoEnd) {
-                onVideoEnd();
-                onVideoEnd = null;
-            }
-        }
-
-        // ---------- RENDER LOOP ----------
         function animate() {
             requestAnimationFrame(animate);
             TWEEN.update();
             controls.update();
-            for (let key in piecesMap) {
+            
+            // Billboard pieces
+            for(let key in piecesMap) {
                 const mesh = piecesMap[key];
-                mesh.lookAt(camera.position.x, mesh.position.y, camera.position.z);
+                mesh.lookAt(camera.position); 
+                // Keep upright? 
+                // mesh.rotation.x = 0; // Uncomment for upright billboards, but lookAt camera makes them face you 
             }
-            renderer.render(scene, camera);
+
+            // Particles
+            for(let i=particles.length-1; i>=0; i--) {
+                const p = particles[i];
+                p.life -= 0.02;
+                const positions = p.mesh.geometry.attributes.position.array;
+                for(let j=0; j<50; j++) {
+                    positions[j*3] += p.vels[j].x;
+                    positions[j*3+1] += p.vels[j].y;
+                    positions[j*3+2] += p.vels[j].z;
+                    p.vels[j].y -= 0.05; // Gravity
+                }
+                p.mesh.geometry.attributes.position.needsUpdate = true;
+                p.mesh.material.opacity = p.life;
+                if(p.life <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
+            }
+
+            composer.render();
         }
         animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); composer.setSize(window.innerWidth,window.innerHeight); });
     </script>
 </body>
 </html>
