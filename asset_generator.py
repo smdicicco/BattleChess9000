@@ -5,6 +5,7 @@ import shutil
 import json
 import mimetypes
 import subprocess  # Added for FFmpeg
+import argparse
 from pathlib import Path
 from typing import Optional, List
 from google import genai
@@ -395,6 +396,10 @@ def update_theme_manifest(theme_name):
         print(f"📝 Registered theme '{theme_name}' in assets/themes.json")
 
 def main():
+    parser = argparse.ArgumentParser(description="Battle Chess Asset Generator")
+    parser.add_argument("--graphics-only", action="store_true", help="Generate only static graphics (board, pieces), skipping videos.")
+    args = parser.parse_args()
+
     print("=========================================")
     print("   BATTLE CHESS ASSET GENERATOR v4.0   ")
     print("   *** QUOTA-SAFE + AUTO-COMPRESS *** ")
@@ -497,12 +502,15 @@ def main():
     
     if board_png:
         generate_piece_sprites(base_dir, pieces_dir, temp_dir, piece_desc, board_desc, board_path=board_png)
-        generate_animations(base_dir, video_dir, pieces_dir, temp_dir, board_path=board_png, anim_desc=anim_desc, piece_desc=piece_desc)
+        if not args.graphics_only:
+            generate_animations(base_dir, video_dir, pieces_dir, temp_dir, board_path=board_png, anim_desc=anim_desc, piece_desc=piece_desc)
+        else:
+            print("\n🚫 Skipping animation generation (--graphics-only used)")
     else:
         print("❌ Board generation failed. Exiting.")
 
     # 3. Compression Step
-    if os.path.exists(video_dir):
+    if os.path.exists(video_dir) and not args.graphics_only:
         compress_new_assets(video_dir)
 
     print("\n✅ GENERATION COMPLETE!")
